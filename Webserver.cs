@@ -29,5 +29,30 @@ public static class Server
 
         return listener;
     }
+
+    public static int maxSimultaneousConnections = 20;
+    private static Semaphore sem = new Semaphore(maxSimultaneousConnections, maxSimultaneousConnections);
+
+    private static void Start(HttpListener listener)
+    {
+        listener.Start();
+        Task.Run(() => RunServer(listener));
+    }
+
+    private static void RunServer(HttpListener listener)
+    {
+        while (true)
+        {
+            sem.WaitOne();
+            StartConnectionListener(listener);
+        }
+    }
+
+    private static async void StartConnectionListener(HttpListener listener)
+    {
+        HttpListenerContext context = await listener.GetContextAsync();
+        sem.Release();
+
+    }
 }
 }
