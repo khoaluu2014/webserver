@@ -22,6 +22,8 @@ namespace Tofu.Webserver
             List<IPAddress> ret = host
                 .AddressList.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .ToList();
+
+            return ret;
         }
 
         private static HttpListener InitializeListener(List<IPAddress> localhostIPs)
@@ -84,5 +86,16 @@ namespace Tofu.Webserver
             context.Response.OutputStream.Write(encoded, 0, encoded.Length);
             context.Response.OutputStream.Close();
         }
+    }
+
+    /// </summary>
+    /// Starts the web server.
+    /// </summary>
+
+    public static void Start()
+    {
+        List<IPAddress> localHostIPs = GetLocalHostIPs();
+        HttpListener listener = InitializeListener(localHostIPs);
+        Start(listener);
     }
 }
