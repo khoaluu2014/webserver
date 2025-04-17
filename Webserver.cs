@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace Tofu.Webserver
 {
@@ -11,7 +12,8 @@ namespace Tofu.Webserver
         private static HttpListener listener;
 
         /// <summary>
-        /// Returns list of IP addresses assigned to localhost network devices, such as hardwired ethernet, wireless, etc,...
+        /// Returns list of IP addresses assigned to localhost network devices,
+        /// such as hardwired ethernet, wireless, etc,...
         /// </summary>
         private static List<IPAddress> GetLocalHostIPs()
         {
@@ -42,12 +44,19 @@ namespace Tofu.Webserver
             maxSimultaneousConnections
         );
 
+        /// <summary>
+        /// Begin listening to connections on a separate worker thread
+        /// </summary>
         private static void Start(HttpListener listener)
         {
             listener.Start();
             Task.Run(() => RunServer(listener));
         }
 
+        /// <summary>
+        /// Start awaiting for connections, up to the "maxSimultaneousConnections value."
+        /// This code runs in a separate thread.
+        /// </summary>
         private static void RunServer(HttpListener listener)
         {
             while (true)
@@ -57,10 +66,23 @@ namespace Tofu.Webserver
             }
         }
 
+        /// <summary>
+        /// Await connections.
+        /// </summary>
         private static async void StartConnectionListener(HttpListener listener)
         {
+            // Wait for a connection. Return to caller while we wait
             HttpListenerContext context = await listener.GetContextAsync();
+
+            // Release the semaphore
             sem.Release();
+
+            // We have a connection, do something
+            string response = "Hello Browser!";
+            byte[] encoded = Encoding.UTF8.GetBytes(response);
+            context.Response.ContentLength64 = encoded.Length;
+            context.Response.OutputStream.Write(encoded, 0, encoded.Length);
+            context.Response.OutputStream.Close();
         }
     }
 }
