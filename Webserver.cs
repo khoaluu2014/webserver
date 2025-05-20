@@ -34,7 +34,7 @@ public static class Server
         localhostIPs.ForEach(ip =>
         {
             Console.WriteLine("Listening on IP " + "http://" + ip.ToString() + "/");
-            listener.Prefixes.Add("http://" + ip.ToString() + "/");
+            listener.Prefixes.Add("http://" + ip.ToString() + ":8000/");
         });
 
         return listener;
